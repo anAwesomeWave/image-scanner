@@ -9,4 +9,6 @@ while True:
     key = cv2.waitKey(0)  # waits until a key is pressed
     if key == 27:  # esc
         break
+
+
 cv2.destroyAllWindows()  # destroys the window showing image
