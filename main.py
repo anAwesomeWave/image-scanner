@@ -4,7 +4,6 @@ import cv2
 import logging
 import imutils
 
-
 # simple logger
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -14,7 +13,6 @@ log.addHandler(logging.FileHandler('image.log'))
 # empty function for trackbar
 def nothing(x):
     pass
-
 
 # pass image to opencv and create several copies for drawing
 path_to_image = './image.jpg'
@@ -47,8 +45,8 @@ def draw(event, x, y, flags, param):
                                        'image') / 255  # Transparency factor. Get from trackbar and map to [0,1]
             # Following line overlays transparent rectangle over the image
             cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, output)
-    elif event == cv2.EVENT_LBUTTONUP: # mouse up
-         if can_draw: # if it is the first rectangle
+    elif event == cv2.EVENT_LBUTTONUP:  # mouse up
+        if can_draw:  # if it is the first rectangle
             drawing = False  # we are no longer drawing
             can_draw = False  # we can't draw another rect
             cv2.rectangle(overlay, (start_x, start_y), (x, y), (200, 65, 65), -1)  # A filled rectangle
@@ -57,10 +55,11 @@ def draw(event, x, y, flags, param):
 
 cv2.setMouseCallback('image', draw)  # set callback func on mouse event
 
+crop_img = None
 while True:
     cv2.imshow('image', output)
     key = cv2.waitKey(1)
-    log.info(key)  # pass key into a  logger
+    # log.info(key)  # pass key into a  logger
     alpha = cv2.getTrackbarPos('alpha', 'image') / 255
     cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0, output)  # always check alpha value and apply to rect
 
@@ -77,6 +76,7 @@ while True:
         crop_img = image[start_y:end_y, start_x:end_x]
         crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)  # change color to gray
         cv2.imshow("cropped", crop_img)
-        cv2.waitKey(1)
+    elif key == ord('s') and crop_img is not None:
+        cv2.imwrite(f'./{path_to_image.split("/")[-1].split(".")[0]}_scanned.jpg', crop_img)
 
 cv2.destroyAllWindows()  # destroys the window showing image
