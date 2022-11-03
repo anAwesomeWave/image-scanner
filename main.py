@@ -18,6 +18,7 @@ image = cv2.imread(path_to_image)
 cv2.namedWindow('image')
 cv2.createTrackbar('alpha', 'image', 0, 255, nothing)
 cv2.setTrackbarPos('alpha', 'image', 123)
+image = cv2.resize(image, (0, 0), fx=0.5, fy=0.5)
 
 overlay = image.copy()
 output = image.copy()
@@ -90,8 +91,7 @@ def controller(img, brightness=255,
         ga_mma = shadow
         # The function addWeighted calculates
         # the weighted sum of two arrays
-        cal = cv2.addWeighted(img, al_pha,
-                              img, 0, ga_mma)
+        cal = cv2.addWeighted(img, al_pha,img, 0, ga_mma)
     else:
         cal = img
     if contrast != 0:
@@ -118,15 +118,19 @@ while True:
         overlay = image.copy()
         output = image.copy()
     elif key == 27:  # esc (exit)
-        break
+        if crop_img is not None:
+            cv2.destroyWindow("cropped")
+            crop_img = None
+        else:
+            break
     elif key == 99:  # c - crop
         # create new window with cropped image
-        if start_x == -1:
+        if start_x != -1 and ((end_x-start_x)**2 + (end_y-start_y)**2 > 50):
             crop_img = image[start_y:end_y, start_x:end_x]
         else:
-            crop_img = image
+            crop_img = image.copy()
         crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)  # change color to gray
-        crop_img = cv2.GaussianBlur(crop_img, (5, 5), 0)  # change color to gray
+        #crop_img = cv2.GaussianBlur(crop_img, (5, 5), 0)  # add blur
         #crop_img = cv2.Canny(crop_img, 75, 200)  # change color to gray
         cv2.imshow("cropped", crop_img)
         cv2.createTrackbar('Brightness','cropped', 255, 2 * 255, BrightnessContrast)
@@ -140,3 +144,6 @@ while True:
         BrightnessContrast(0)
 
 cv2.destroyAllWindows()  # destroys the window showing image
+
+
+#add black&white
