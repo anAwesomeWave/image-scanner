@@ -1,8 +1,5 @@
-from skimage.filters import threshold_local
-import numpy as np
 import cv2
 import logging
-import imutils
 
 # simple logger
 log = logging.getLogger(__name__)
@@ -14,8 +11,9 @@ log.addHandler(logging.FileHandler('image.log'))
 def nothing(x):
     pass
 
+
 # pass image to opencv and create several copies for drawing
-path_to_image = './image.jpg'
+path_to_image = './photo_2022-11-02_11-22-47.jpg'
 image = cv2.imread(path_to_image)
 cv2.namedWindow('image')
 cv2.createTrackbar('alpha', 'image', 0, 255, nothing)
@@ -23,6 +21,7 @@ cv2.setTrackbarPos('alpha', 'image', 123)
 
 overlay = image.copy()
 output = image.copy()
+crop_img = None
 
 drawing = False  # for drawing (if True you can draw rect with moving)
 can_draw = True  # allows draw only one rectangle
@@ -55,7 +54,56 @@ def draw(event, x, y, flags, param):
 
 cv2.setMouseCallback('image', draw)  # set callback func on mouse event
 
-crop_img = None
+
+# ---
+def BrightnessContrast(brightness=0):
+    global crop_img
+    # getTrackbarPos returns the current
+    # position of the specified trackbar.
+    brightness = cv2.getTrackbarPos('Brightness',
+                                    'cropped')
+
+    contrast = cv2.getTrackbarPos('Contrast',
+                                  'cropped')
+
+    effect = controller(crop_img, brightness,
+                        contrast)
+
+    # The function imshow displays an image
+    # in the specified window
+    #cv2.imshow('Effect', effect)
+    cv2.imshow('cropped', effect)
+
+
+def controller(img, brightness=255,
+               contrast=127):
+    brightness = int((brightness - 0) * (255 - (-255)) / (510 - 0) + (-255))
+    contrast = int((contrast - 0) * (127 - (-127)) / (254 - 0) + (-127))
+    if brightness != 0:
+        if brightness > 0:
+            shadow = brightness
+            max = 255
+        else:
+            shadow = 0
+            max = 255 + brightness
+        al_pha = (max - shadow) / 255
+        ga_mma = shadow
+        # The function addWeighted calculates
+        # the weighted sum of two arrays
+        cal = cv2.addWeighted(img, al_pha,
+                              img, 0, ga_mma)
+    else:
+        cal = img
+    if contrast != 0:
+        Alpha = float(131 * (contrast + 127)) / (127 * (131 - contrast))
+        Gamma = 127 * (1 - Alpha)
+        # The function addWeighted calculates
+        # the weighted sum of two arrays
+        cal = cv2.addWeighted(cal, Alpha, cal, 0, Gamma)
+    return cal
+# ---
+
+
 while True:
     cv2.imshow('image', output)
     key = cv2.waitKey(1)
@@ -73,10 +121,22 @@ while True:
         break
     elif key == 99:  # c - crop
         # create new window with cropped image
-        crop_img = image[start_y:end_y, start_x:end_x]
+        if start_x == -1:
+            crop_img = image[start_y:end_y, start_x:end_x]
+        else:
+            crop_img = image
         crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)  # change color to gray
+        crop_img = cv2.GaussianBlur(crop_img, (5, 5), 0)  # change color to gray
+        #crop_img = cv2.Canny(crop_img, 75, 200)  # change color to gray
         cv2.imshow("cropped", crop_img)
+        cv2.createTrackbar('Brightness','cropped', 255, 2 * 255, BrightnessContrast)
+        cv2.createTrackbar('Contrast', 'cropped', 127, 2 * 127, BrightnessContrast)
     elif key == ord('s') and crop_img is not None:
         cv2.imwrite(f'./{path_to_image.split("/")[-1].split(".")[0]}_scanned.jpg', crop_img)
+
+    # --
+    if crop_img is not None:
+        #cv2.imshow("cropped", crop_img)
+        BrightnessContrast(0)
 
 cv2.destroyAllWindows()  # destroys the window showing image
