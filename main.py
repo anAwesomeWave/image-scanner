@@ -18,6 +18,10 @@ image = cv2.imread(path_to_image)
 cv2.namedWindow('image')
 cv2.createTrackbar('alpha', 'image', 0, 255, nothing)
 cv2.setTrackbarPos('alpha', 'image', 123)
+
+
+
+#TODO: доработать
 image = cv2.resize(image, (0, 0), fx=0.5, fy=0.5)
 
 overlay = image.copy()
@@ -73,7 +77,8 @@ def BrightnessContrast(brightness=0):
     # The function imshow displays an image
     # in the specified window
     #cv2.imshow('Effect', effect)
-    cv2.imshow('cropped', effect)
+    #cv2.imshow('cropped', effect)
+    return effect
 
 
 def controller(img, brightness=255,
@@ -91,7 +96,7 @@ def controller(img, brightness=255,
         ga_mma = shadow
         # The function addWeighted calculates
         # the weighted sum of two arrays
-        cal = cv2.addWeighted(img, al_pha,img, 0, ga_mma)
+        cal = cv2.addWeighted(img, al_pha, img, 0, ga_mma)
     else:
         cal = img
     if contrast != 0:
@@ -136,12 +141,12 @@ while True:
         cv2.createTrackbar('Brightness','cropped', 255, 2 * 255, BrightnessContrast)
         cv2.createTrackbar('Contrast', 'cropped', 127, 2 * 127, BrightnessContrast)
     elif key == ord('s') and crop_img is not None:
-        cv2.imwrite(f'./{path_to_image.split("/")[-1].split(".")[0]}_scanned.jpg', crop_img)
+        cv2.imwrite(f'./{path_to_image.split("/")[-1].split(".")[0]}_scanned.jpg', BrightnessContrast(0))
 
     # --
     if crop_img is not None:
         #cv2.imshow("cropped", crop_img)
-        BrightnessContrast(0)
+        cv2.imshow('cropped', BrightnessContrast(0))
 
 cv2.destroyAllWindows()  # destroys the window showing image
 
